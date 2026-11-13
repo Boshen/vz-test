@@ -34,12 +34,16 @@ jobs:
       - uses: voidzero-dev/setup-vp@v1
       - run: vp install --frozen-lockfile
       - run: vp -C .vz-source install --frozen-lockfile
-      - run: vp -C .vz-source check --deny-warnings
-      - run: vp -C .vz-source test --config vitest.config.ts
-      - run: vp -C .vz-source run pack:plugin
+      - run: vp run pack:plugin
+        working-directory: .vz-source
+      - run: vp check --deny-warnings
+        working-directory: .vz-source
+      - run: vp test --config vitest.config.ts
+        working-directory: .vz-source
       - run: vp check --deny-warnings
       - run: vp run test
-      - run: vp -C .vz-source build
+      - run: vp -C . build
+        working-directory: .vz-source
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -68,5 +72,6 @@ jobs:
       - uses: voidzero-dev/setup-vp@v1
       - run: vp install --frozen-lockfile
       - run: vp -C .vz-source install --frozen-lockfile
-      - run: vp -C .vz-source run pack:plugin
+      - run: vp run pack:plugin
+        working-directory: .vz-source
       - run: vp run test:live
