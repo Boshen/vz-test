@@ -1,0 +1,72 @@
+name: Integration
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: VZ source ref to test
+        default: main
+        required: true
+      endpoint:
+        description: Deployed VZ application origin (not api.void.cloud)
+        required: false
+permissions:
+  contents: read
+concurrency:
+  group: vz-test-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Boshen/vz
+          ref: ${{ inputs.source_ref || 'main' }}
+          path: .vz-source
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: voidzero-dev/setup-vp@v1
+      - run: vp install --frozen-lockfile
+      - run: vp -C .vz-source install --frozen-lockfile
+      - run: vp -C .vz-source check --deny-warnings
+      - run: vp -C .vz-source test --config vitest.config.ts
+      - run: vp -C .vz-source run pack:plugin
+      - run: vp check --deny-warnings
+      - run: vp run test
+      - run: vp -C .vz-source build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixture-builds
+          path: .artifacts/contracts
+          include-hidden-files: true
+  live:
+    needs: contracts
+    if: github.event_name != 'pull_request' && (vars.VZ_ENDPOINT != '' || inputs.endpoint != '')
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    env:
+      VZ_ENDPOINT: ${{ inputs.endpoint || vars.VZ_ENDPOINT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: Boshen/vz
+          ref: ${{ inputs.source_ref || 'main' }}
+          path: .vz-source
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: voidzero-dev/setup-vp@v1
+      - run: vp install --frozen-lockfile
+      - run: vp -C .vz-source install --frozen-lockfile
+      - run: vp -C .vz-source run pack:plugin
+      - run: vp run test:live

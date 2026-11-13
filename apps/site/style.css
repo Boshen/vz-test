@@ -1,0 +1,10 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 4rem;
+  color: #1f513c;
+}
+button {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.75rem;
+}

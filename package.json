@@ -1,0 +1,30 @@
+{
+  "name": "vz-test",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "check": "vp check --deny-warnings",
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "build": "vp build",
+    "test:live": "node scripts/live.mjs"
+  },
+  "dependencies": {
+    "nanoid": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "~7.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.18.0",
+      "onFail": "download"
+    }
+  },
+  "packageManager": "pnpm@12.18.0"
+}
