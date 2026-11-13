@@ -116,6 +116,22 @@ for (const app of ["site", "library"]) {
       )
     ).json();
     assert.ok(entitySeries.points.some((point) => point.id === id && point.values?.records > 0));
+    const regression = await (await request(`/builds/${id}/regressions`)).json();
+    assert.equal(regression.current.id, id);
+    assert.equal(regression.current.environment, "client");
+    assert.ok(["baseline", "clean", "regression"].includes(regression.status));
+    if (regression.baseline) {
+      assert.notEqual(regression.baseline.sha, regression.current.sha);
+      assert.equal(regression.changes.length, 2);
+      for (const change of regression.changes) {
+        const policy = regression.policy[change.metric];
+        assert.equal(
+          change.regression,
+          change.delta >= policy.absolute &&
+            (change.percent === null || change.percent >= policy.relative * 100),
+        );
+      }
+    }
     const deletion = await fetch(new URL(`/api/v1/builds/${id}`, endpoint), { method: "DELETE" });
     assert.equal(deletion.status, 403, "Anonymous deletion must be rejected");
   }

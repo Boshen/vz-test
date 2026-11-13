@@ -140,7 +140,13 @@ for (const app of ["site", "library"]) {
     for (const name of ["modules", "chunks", "assets", "packages", "plugins", "events"]) {
       const descriptor = manifest.artifacts.find((artifact) => artifact.dataset === name);
       assert.ok(descriptor, `${name} must be available`);
-      assert.ok(JSON.parse(result.payloads.get(descriptor.id)).length > 0);
+      assert.ok(
+        JSON.parse(
+          descriptor.contentType === "application/gzip"
+            ? gunzipSync(result.payloads.get(descriptor.id)).toString()
+            : result.payloads.get(descriptor.id),
+        ).length > 0,
+      );
     }
     const raw = manifest.artifacts.find((artifact) => artifact.kind === "raw");
     const events = gunzipSync(result.payloads.get(raw.id))
