@@ -27,12 +27,13 @@ and large manifests that exceed D1's per-row limit.
 
 ## Live OIDC tests
 
-Install the VZ platform's GitHub App on `Boshen/vz-test`. Deploy VZ through
-`https://api.void.cloud`, then use the **resulting application URL** as the
+VZ is deployed at [vz.void.app](https://vz.void.app) through
+`https://api.void.cloud`. Configure the GitHub App credentials on that Void project
+and install the app on `Boshen/vz-test`, then enable the live job with the
 `VZ_ENDPOINT` Actions repository variable:
 
 ```sh
-gh variable set VZ_ENDPOINT --repo Boshen/vz-test --body https://<vz-app>.void.app
+gh variable set VZ_ENDPOINT --repo Boshen/vz-test --body https://vz.void.app
 gh workflow run integration.yml --repo Boshen/vz-test
 ```
 
