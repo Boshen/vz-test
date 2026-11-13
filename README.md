@@ -41,7 +41,9 @@ Alternatively pass `endpoint` in a manual workflow dispatch. The live job has
 `id-token: write` and uses no persistent upload secret. It uploads two builds per
 app and verifies public report reads, every diagnostic dataset, safe source byte
 ranges, anonymous deletion rejection, signed repository/commit provenance, and
-explicit build comparisons. Report links appear in the job summary.
+explicit build comparisons. It also downloads and decompresses emitted files, source
+maps, build context, and output inventories, and checks a binary asset byte for byte.
+Report links appear in the job summary.
 
 **Until the endpoint and GitHub App are configured, the live job is visibly
 skipped; the contract suite is not presented as a live deployment test.** Fork PRs

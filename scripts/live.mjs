@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { gunzipSync } from "node:zlib";
 import { execFileSync } from "node:child_process";
 import { appendFile } from "node:fs/promises";
 
@@ -41,6 +42,29 @@ for (const app of ["site", "library"]) {
     for (const dataset of ["modules", "chunks", "assets", "packages", "plugins", "events"]) {
       const data = await (await request(`/builds/${id}/datasets/${dataset}`)).json();
       assert.ok(data.pages > 0 && data.rows.length > 0, `Missing ${dataset}`);
+    }
+    const artifacts = build.manifest.artifacts;
+    assert.ok(artifacts.some((artifact) => artifact.kind === "output"));
+    const map = artifacts.find((artifact) => artifact.kind === "sourcemap");
+    assert.ok(map, "Generated source maps must be uploaded");
+    async function compressed(id) {
+      const response = await request(`/builds/${build.id}/artifacts/${id}`);
+      return gunzipSync(Buffer.from(await response.arrayBuffer()));
+    }
+    assert.ok(JSON.parse((await compressed(map.id)).toString()).sources.length > 0);
+    const snapshot = JSON.parse((await compressed("vite-output-0")).toString());
+    assert.equal(snapshot.environment, "client");
+    assert.ok(snapshot.modules.length > 0 && snapshot.chunks.length > 0);
+    assert.ok(snapshot.chunks.some((chunk) => chunk.details.rendering.length > 0));
+    assert.equal(snapshot.config.build.sourcemap, true);
+    const context = JSON.parse((await compressed("build-context")).toString());
+    assert.ok(context.memory.rss > 0);
+    if (app === "site") {
+      const binary = artifacts.find(
+        (artifact) => artifact.kind === "output" && artifact.name.endsWith(".bin"),
+      );
+      assert.ok(binary, "Binary output must be uploaded");
+      assert.deepEqual([...(await compressed(binary.id))], [0, 255, 1, 2, 127, 128]);
     }
     const source = build.manifest.artifacts.find((artifact) => artifact.kind === "source");
     assert.ok(source);

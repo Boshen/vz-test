@@ -15,6 +15,8 @@ export default defineConfig({
     }),
   ],
   build: {
+    sourcemap: true,
+    assetsInlineLimit: 0,
     outDir: resolve("dist", app),
     emptyOutDir: true,
     ...(app === "library"

@@ -104,6 +104,8 @@ async function exercise({
         customLogger: logger,
         plugins: [vz({ endpoint: "https://capture.invalid", project: app, enabled, strict })],
         build: {
+          sourcemap: true,
+          assetsInlineLimit: 0,
           outDir,
           emptyOutDir: true,
           ...(app === "library"
