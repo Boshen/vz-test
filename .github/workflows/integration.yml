@@ -52,7 +52,7 @@ jobs:
           include-hidden-files: true
   live:
     needs: contracts
-    if: github.event_name != 'pull_request' && (vars.VZ_ENDPOINT != '' || inputs.endpoint != '')
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && (vars.VZ_ENDPOINT != '' || inputs.endpoint != '')
     permissions:
       contents: read
       id-token: write

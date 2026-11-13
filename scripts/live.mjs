@@ -74,6 +74,48 @@ for (const app of ["site", "library"]) {
     assert.equal(preview.status, 206);
     assert.match(preview.headers.get("Content-Disposition"), /attachment/);
     assert.equal(preview.headers.get("Cache-Control"), "no-store");
+    const totals = await (
+      await request(
+        `/projects/${build.projectId}/trends?dataset=build&branch=main&environment=client`,
+      )
+    ).json();
+    const point = totals.points.find((point) => point.id === id);
+    assert.ok(point?.indexed, "Completed uploads must be indexed immediately");
+    assert.equal(point.values.outputBytes, build.manifest.summary.outputBytes);
+    assert.equal(totals.branch, "refs/heads/main");
+    for (const dataset of [
+      "modules",
+      "chunks",
+      "assets",
+      "packages",
+      "plugins",
+      "events",
+      "artifacts",
+      "runtime",
+    ]) {
+      const series = await (
+        await request(
+          `/projects/${build.projectId}/trends?dataset=${dataset}&branch=main&environment=client`,
+        )
+      ).json();
+      const current = series.points.find((point) => point.id === id);
+      assert.ok(current?.values, `Missing ${dataset} trend point`);
+      if (dataset === "runtime") assert.ok(current.values.rss > 0);
+      else assert.ok(current.values.records > 0);
+      if (dataset === "artifacts") assert.equal(current.values.records, artifacts.length);
+    }
+    const modulesSeries = await (
+      await request(
+        `/projects/${build.projectId}/trends?dataset=modules&branch=main&environment=client`,
+      )
+    ).json();
+    assert.ok(modulesSeries.entities.length > 0);
+    const entitySeries = await (
+      await request(
+        `/projects/${build.projectId}/trends?dataset=modules&entity=${modulesSeries.entities[0].id}`,
+      )
+    ).json();
+    assert.ok(entitySeries.points.some((point) => point.id === id && point.values?.records > 0));
     const deletion = await fetch(new URL(`/api/v1/builds/${id}`, endpoint), { method: "DELETE" });
     assert.equal(deletion.status, 403, "Anonymous deletion must be rejected");
   }

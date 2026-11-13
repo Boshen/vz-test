@@ -67,3 +67,7 @@ vp run test
 Live uploads deliberately refuse to run locally. To test a different VZ revision,
 check it out in `.vz-source` and rebuild the plugin. The `.vz-source` checkout and
 `.artifacts` outputs are ignored and never committed.
+
+Live uploads run only on `main`. Each completed capture must immediately appear in
+the project timeline, including build totals, every dataset category, stored-file
+counts, runtime measurements, and a record-level module series.
